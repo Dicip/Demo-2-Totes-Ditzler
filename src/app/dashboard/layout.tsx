@@ -22,7 +22,7 @@ import {
 import { LogoutButton } from './logout-button';
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/dashboard/users', label: 'Usuarios', icon: Users },
   { href: '/dashboard/totes', label: 'Totes', icon: Package },
   { href: '/dashboard/clients', label: 'Clientes', icon: Briefcase },
@@ -75,7 +75,7 @@ export default function DashboardLayout({
                         <LogoutButton />
                     </div>
                 </TooltipTrigger>
-                <TooltipContent side="right">Sign Out</TooltipContent>
+                <TooltipContent side="right">Cerrar Sesión</TooltipContent>
             </Tooltip>
           </nav>
         </aside>

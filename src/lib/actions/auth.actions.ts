@@ -27,7 +27,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
   const validatedFields = LoginSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: 'Invalid fields!' };
+    return { error: '¡Campos inválidos!' };
   }
 
   const { email, password } = validatedFields.data;
@@ -36,7 +36,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 
   if (!existingUser || existingUser.password !== password) {
     failedLoginAttempts[email] = (failedLoginAttempts[email] || 0) + 1;
-    return { error: 'Invalid email or password.' };
+    return { error: 'Email o contraseña inválidos.' };
   }
   
   // Reset failed attempts on successful login
@@ -56,7 +56,7 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: 'Invalid fields!' };
+    return { error: '¡Campos inválidos!' };
   }
   
   const { name, email, password } = validatedFields.data;
@@ -64,13 +64,13 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
   const existingUser = users.find((user) => user.email === email);
 
   if (existingUser) {
-    return { error: 'An account with this email already exists.' };
+    return { error: 'Ya existe una cuenta con este email.' };
   }
   
   // This is a mock. In a real app, you would hash the password.
   users.push({ id: String(users.length + 1), name, email, password, role: 'USER' });
 
-  return { success: 'Registration successful! You can now log in.' };
+  return { success: '¡Registro exitoso! Ahora puedes iniciar sesión.' };
 }
 
 export async function forgotPassword(
@@ -79,20 +79,20 @@ export async function forgotPassword(
   const validatedFields = ForgotPasswordSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: 'Invalid email!' };
+    return { error: '¡Email inválido!' };
   }
 
   const { email } = validatedFields.data;
   const existingUser = users.find((user) => user.email === email);
 
   if (!existingUser) {
-    return { error: 'No account found with this email.' };
+    return { error: 'No se encontró una cuenta con este email.' };
   }
 
   // In a real app, you would generate a secure token and send an email.
-  console.log(`Password reset link for ${email} would be sent here.`);
+  console.log(`El enlace para restablecer la contraseña de ${email} se enviaría aquí.`);
 
-  return { success: 'Password reset instructions sent to your email.' };
+  return { success: 'Se han enviado las instrucciones para restablecer la contraseña a tu email.' };
 }
 
 export async function logout() {

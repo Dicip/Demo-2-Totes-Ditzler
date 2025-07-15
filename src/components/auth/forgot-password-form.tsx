@@ -47,8 +47,8 @@ export const ForgotPasswordForm = () => {
 
   return (
     <CardWrapper
-      headerLabel="Forgot your password? No worries."
-      backButtonLabel="Back to sign in"
+      headerLabel="¿Olvidaste tu contraseña? No te preocupes."
+      backButtonLabel="Volver a iniciar sesión"
       backButtonHref="/login"
     >
       <Form {...form}>
@@ -76,7 +76,7 @@ export const ForgotPasswordForm = () => {
           <FormError message={error} />
           <FormSuccess message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Sending...' : 'Send Reset Instructions'}
+            {isPending ? 'Enviando...' : 'Enviar Instrucciones'}
           </Button>
         </form>
       </Form>

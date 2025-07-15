@@ -15,7 +15,7 @@ export const LogoutButton = () => {
         <form action={logout}>
           <Button type="submit" variant="ghost" className="w-full justify-start">
             <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+            Cerrar Sesión
           </Button>
         </form>
       )
@@ -25,7 +25,7 @@ export const LogoutButton = () => {
     <form action={logout}>
         <Button type="submit" variant="outline" size="icon" className="h-9 w-9">
             <LogOut className="h-4 w-4" />
-            <span className="sr-only">Sign Out</span>
+            <span className="sr-only">Cerrar Sesión</span>
         </Button>
     </form>
   );

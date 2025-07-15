@@ -51,8 +51,8 @@ export const LoginForm = () => {
 
   return (
     <CardWrapper
-      headerLabel="Welcome back! Sign in to your account."
-      backButtonLabel="Don't have an account? Sign up"
+      headerLabel="¡Bienvenido de nuevo! Inicia sesión en tu cuenta."
+      backButtonLabel="¿No tienes una cuenta? Regístrate"
       backButtonHref="/register"
     >
       <Form {...form}>
@@ -81,7 +81,7 @@ export const LoginForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Contraseña</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -91,7 +91,7 @@ export const LoginForm = () => {
                     />
                   </FormControl>
                    <Button size="sm" variant="link" asChild className="px-0 font-normal">
-                      <Link href="/forgot-password">Forgot password?</Link>
+                      <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
                     </Button>
                   <FormMessage />
                 </FormItem>
@@ -101,7 +101,7 @@ export const LoginForm = () => {
           <FormError message={error} />
           <FormSuccess message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Signing in...' : 'Sign In'}
+            {isPending ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Button>
         </form>
       </Form>

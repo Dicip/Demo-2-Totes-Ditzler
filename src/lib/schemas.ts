@@ -2,33 +2,33 @@ import * as z from 'zod';
 
 export const LoginSchema = z.object({
   email: z.string().email({
-    message: 'A valid email is required.',
+    message: 'Se requiere un email válido.',
   }),
   password: z.string().min(1, {
-    message: 'Password is required.',
+    message: 'La contraseña es requerida.',
   }),
 });
 
 export const RegisterSchema = z
   .object({
     email: z.string().email({
-      message: 'A valid email is required.',
+      message: 'Se requiere un email válido.',
     }),
     password: z.string().min(6, {
-      message: 'Password must be at least 6 characters.',
+      message: 'La contraseña debe tener al menos 6 caracteres.',
     }),
     confirmPassword: z.string(),
     name: z.string().min(1, {
-      message: 'Name is required.',
+      message: 'El nombre es requerido.',
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
+    message: "Las contraseñas no coinciden.",
     path: ['confirmPassword'],
   });
 
 export const ForgotPasswordSchema = z.object({
   email: z.string().email({
-    message: 'A valid email is required.',
+    message: 'Se requiere un email válido.',
   }),
 });
