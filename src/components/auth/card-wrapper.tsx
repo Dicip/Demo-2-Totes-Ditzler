@@ -13,8 +13,8 @@ import { Separator } from '@/components/ui/separator';
 interface CardWrapperProps {
   children: React.ReactNode;
   headerLabel: string;
-  backButtonLabel: string;
-  backButtonHref: string;
+  backButtonLabel?: string;
+  backButtonHref?: string;
 }
 
 export const CardWrapper = ({
@@ -32,10 +32,14 @@ export const CardWrapper = ({
         <p className="text-muted-foreground">{headerLabel}</p>
       </CardHeader>
       <CardContent>{children}</CardContent>
-      <Separator className="my-0" />
-      <CardFooter className="py-4">
-        <BackButton href={backButtonHref} label={backButtonLabel} />
-      </CardFooter>
+      {backButtonHref && backButtonLabel && (
+        <>
+          <Separator className="my-0" />
+          <CardFooter className="py-4">
+            <BackButton href={backButtonHref} label={backButtonLabel} />
+          </CardFooter>
+        </>
+      )}
     </Card>
   );
 };

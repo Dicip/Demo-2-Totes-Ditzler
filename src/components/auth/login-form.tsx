@@ -52,8 +52,6 @@ export const LoginForm = () => {
   return (
     <CardWrapper
       headerLabel="¡Bienvenido de nuevo! Inicia sesión en tu cuenta."
-      backButtonLabel="¿No tienes una cuenta? Regístrate"
-      backButtonHref="/register"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
