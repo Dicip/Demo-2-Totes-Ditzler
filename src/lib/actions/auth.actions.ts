@@ -3,14 +3,12 @@
 import * as z from 'zod';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
 
 import {
   LoginSchema,
   RegisterSchema,
   ForgotPasswordSchema,
 } from '@/lib/schemas';
-import { detectLoginAnomalies } from '@/ai/flows/detect-login-anomalies';
 
 // Mock user database
 const users = [
@@ -33,32 +31,6 @@ export async function login(values: z.infer<typeof LoginSchema>) {
   }
 
   const { email, password } = validatedFields.data;
-
-  // Anomaly Detection
-  const ip = headers().get('x-forwarded-for') ?? '127.0.0.1';
-  const attempts = failedLoginAttempts[email] || 0;
-
-  try {
-    const anomalyInput = {
-      userId: email,
-      ipAddress: ip,
-      timestamp: Date.now(),
-      failedAttempts: attempts,
-      location: 'Unknown', // In a real app, use an IP geolocation service
-    };
-
-    const anomalyResult = await detectLoginAnomalies(anomalyInput);
-
-    if (anomalyResult.isAnomalous) {
-      console.warn(`Anomalous login detected for ${email}: ${anomalyResult.reason}`);
-      return {
-        error: `Suspicious activity detected. For your security, this login attempt has been blocked.`,
-      };
-    }
-  } catch (e) {
-    console.error('Anomaly detection failed', e);
-    // Decide if you want to fail open or closed. For now, we fail open.
-  }
 
   const existingUser = users.find((user) => user.email === email);
 
