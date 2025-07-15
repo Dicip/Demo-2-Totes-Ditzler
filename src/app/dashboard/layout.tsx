@@ -2,7 +2,6 @@
 'use client';
 
 import { redirect, usePathname } from 'next/navigation';
-import { cookies } from 'next/headers';
 import { Home, Users, Package, Briefcase, PanelLeft } from 'lucide-react';
 import Link from 'next/link';
 
