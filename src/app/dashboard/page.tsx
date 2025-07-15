@@ -1,11 +1,10 @@
 
 'use client';
 
-import { BarChart, LineChart } from 'lucide-react';
+import { AlertTriangle, Package, Users } from 'lucide-react';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -14,188 +13,134 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart as BarChartComponent, CartesianGrid, XAxis, YAxis, Line, LineChart as LineChartComponent } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-const chartData = [
-  { month: 'January', totes: 186 },
-  { month: 'February', totes: 305 },
-  { month: 'March', totes: 237 },
-  { month: 'April', totes: 73 },
-  { month: 'May', totes: 209 },
-  { month: 'June', totes: 214 },
+const toteStatusData = [
+  { name: 'Con Cliente', value: 400, color: '#3B82F6' }, // Blue
+  { name: 'Disponible', value: 300, color: '#14A38B' }, // Teal
+  { name: 'En Lavado', value: 150, color: '#6B7280' },  // Gray
+  { name: 'En Mantenimiento', value: 100, color: '#F97316' }, // Orange
+  { name: 'En Uso', value: 50, color: '#84CC16' }, // Lime
 ];
 
-const chartConfig = {
-  totes: {
-    label: 'Totes',
-    color: 'hsl(var(--primary))',
-  },
-};
-
-const lineChartData = [
-    { date: '2024-01-01', new: 5, returned: 2 },
-    { date: '2024-01-02', new: 7, returned: 3 },
-    { date: '2024-01-03', new: 6, returned: 4 },
-    { date: '2024-01-04', new: 10, returned: 1 },
-    { date: '2024-01-05', new: 8, returned: 5 },
-    { date: '2024-01-06', new: 12, returned: 6 },
-    { date: '2024-01-07', new: 11, returned: 7 },
+const totesWithClients = [
+    { name: 'Del Valle', totes: 2 },
+    { name: 'Sol Radiante', totes: 2 },
+    { name: 'Los Andes', totes: 2 },
+    { name: 'del Pacifico', totes: 2 },
+    { name: 'Del Maipo', totes: 1 },
 ];
 
-const lineChartConfig = {
-  new: {
-    label: 'Nuevos Totes',
-    color: 'hsl(var(--primary))',
-  },
-  returned: {
-    label: 'Totes Devueltos',
-    color: 'hsl(var(--secondary))',
-  },
-};
+const overdueTotes = [
+    { name: 'Sol Radiante', totes: 2 },
+    { name: 'Del Maipo', totes: 1 },
+    { name: 'Del Valle', totes: 1 },
+    { name: 'Los Andes', totes: 1 },
+];
 
 
 export default function DashboardPage() {
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total de Totes
-            </CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
+    <div className="flex-1 space-y-6">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Estado de Totes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% desde el mes pasado
-            </p>
+            <ChartContainer config={{}} className="h-60 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={toteStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#8884d8" paddingAngle={2}>
+                        {toteStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                    </Pie>
+                  </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                {toteStatusData.map((entry) => (
+                    <div key={entry.name} className="flex items-center">
+                        <span className="h-3 w-3 rounded-full" style={{ backgroundColor: entry.color }}></span>
+                        <span className="ml-2 text-muted-foreground">{entry.name}</span>
+                    </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Usuarios Activos
-            </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+          <CardHeader>
+            <CardTitle>Totes con Clientes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+235</div>
-            <p className="text-xs text-muted-foreground">
-              +180.1% desde el mes pasado
-            </p>
+          <CardContent className="space-y-4">
+             <div className="flex items-center gap-4">
+                <Package className="h-8 w-8 text-primary" />
+                <div>
+                    <p className="text-3xl font-bold">9</p>
+                    <p className="text-xs text-muted-foreground">Unidades actualmente con clientes</p>
+                </div>
+            </div>
+            <div className="space-y-2">
+                {totesWithClients.map((client) => (
+                    <div key={client.name} className="flex justify-between">
+                        <span className="text-muted-foreground">{client.name}</span>
+                        <span>{client.totes} totes</span>
+                    </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+          <CardHeader>
+            <CardTitle>Totes Fuera de Plazo</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+12</div>
-            <p className="text-xs text-muted-foreground">
-              +19% desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Totes en Circulación
-            </CardTitle>
-             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-             <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
-              +201 desde la semana pasada
-            </p>
+          <CardContent className="space-y-4">
+             <div className="flex items-center gap-4">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <div>
+                    <p className="text-3xl font-bold">5</p>
+                    <p className="text-xs text-muted-foreground">Unidades vencidas o con despacho &gt; 30 días</p>
+                </div>
+            </div>
+            <div className="space-y-2">
+                {overdueTotes.map((client) => (
+                    <div key={client.name} className="flex justify-between">
+                        <span className="text-muted-foreground">{client.name}</span>
+                        <span className="font-medium text-destructive">{client.totes} tote{client.totes > 1 ? 's' : ''}</span>
+                    </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardTitle>Visión General de Totes</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={chartConfig} className="h-[350px] w-full">
-              <BarChartComponent accessibilityLayer data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <YAxis />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent />}
-                />
-                <Bar dataKey="totes" fill="var(--color-totes)" radius={8} />
-              </BarChartComponent>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Actividad de Totes</CardTitle>
-            <CardDescription>
-              Nuevos totes vs. totes devueltos en la última semana.
-            </CardDescription>
+            <CardTitle>Total de Totes en Sistema</CardTitle>
           </CardHeader>
           <CardContent>
-             <ChartContainer config={lineChartConfig} className="h-[350px] w-full">
-                <LineChartComponent data={lineChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line type="monotone" dataKey="new" stroke="var(--color-new)" />
-                    <Line type="monotone" dataKey="returned" stroke="var(--color-returned)" />
-                </LineChartComponent>
-            </ChartContainer>
+             <div className="flex items-center gap-4">
+                <Package className="h-10 w-10 text-muted-foreground" />
+                <div>
+                    <p className="text-4xl font-bold">22</p>
+                    <p className="text-sm text-muted-foreground">Unidades totales (sin contar bajas)</p>
+                </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Usuarios Activos</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <div className="flex items-center gap-4">
+                <Users className="h-10 w-10 text-muted-foreground" />
+                <div>
+                    <p className="text-4xl font-bold">5</p>
+                    <p className="text-sm text-muted-foreground">Usuarios con acceso al sistema</p>
+                </div>
+            </div>
           </CardContent>
         </Card>
       </div>
