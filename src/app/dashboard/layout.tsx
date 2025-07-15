@@ -4,6 +4,7 @@
 import { redirect, usePathname } from 'next/navigation';
 import { Home, Users, Package, Briefcase, PanelLeft } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,15 +36,14 @@ export default function DashboardLayout({
 
   const pathname = usePathname();
   
-  // This check would be ideal in middleware, but for simplicity we can check here.
-  // Note: this will not run on the server and is a client-side check.
-  // In a real app, use middleware to protect routes.
-  if (typeof window !== 'undefined') {
-    const authToken = document.cookie.split('; ').find(row => row.startsWith('auth_token='))
-    if (!authToken) {
-      redirect('/login');
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const authToken = document.cookie.split('; ').find(row => row.startsWith('auth_token='))
+      if (!authToken) {
+        redirect('/login');
+      }
     }
-  }
+  }, [pathname]);
 
   return (
     <TooltipProvider>
