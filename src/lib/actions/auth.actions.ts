@@ -43,7 +43,7 @@ export async function login(values: z.infer<typeof LoginSchema>) {
   delete failedLoginAttempts[email];
 
   cookies().set('auth_token', existingUser.id, {
-    httpOnly: true,
+    // httpOnly: true, // This must be false for the client-side check to work
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 60 * 60 * 24, // 1 day
