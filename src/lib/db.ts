@@ -1,6 +1,6 @@
 'use server';
 
-import mysql from 'mysql2/promise';
+import * as mssql from 'mssql';
 
 export interface User {
   id: string;
@@ -31,56 +31,71 @@ export interface Database {
   totes: Tote[];
 }
 
-async function getConnection() {
-    if (!process.env.DATABASE_URL) {
-        throw new Error("DATABASE_URL no está definida en las variables de entorno");
+// Configuración directa de la conexión a SQL Server
+const config = {
+    user: 'sa',
+    password: '123',
+    server: 'localhost',
+    port: 1433,
+    database: 'Prueba',
+    options: {
+        encrypt: true, // Para conexiones Azure
+        trustServerCertificate: true // Cambiar a false para producción
     }
-  return await mysql.createConnection(process.env.DATABASE_URL);
+};
+
+async function getConnection() {
+    return await mssql.connect(config);
 }
 
 export async function readDb(): Promise<Database> {
   const connection = await getConnection();
   try {
-    const [users] = await connection.execute('SELECT id, name, email, role FROM users');
-    const [clients] = await connection.execute('SELECT id, name, contact FROM clients');
-    const [totes] = await connection.execute('SELECT id, status, client_id as clientId, last_dispatch as lastDispatch FROM totes');
+    const usersResult = await connection.request().query('SELECT Id as id, Name as name, Email as email, Role as role FROM Users');
+    const clientsResult = await connection.request().query('SELECT Id as id, Name as name, Contact as contact FROM Clients');
+    const totesResult = await connection.request().query('SELECT Id as id, Status as status, ClientId as clientId, LastDispatch as lastDispatch FROM Totes');
 
     return {
-      users: users as User[],
-      clients: clients as Client[],
-      totes: (totes as any[]).map(tote => ({
+      users: usersResult.recordset as User[],
+      clients: clientsResult.recordset as Client[],
+      totes: totesResult.recordset.map(tote => ({
           ...tote,
           lastDispatch: tote.lastDispatch ? new Date(tote.lastDispatch).toISOString() : null
       })) as Tote[],
     };
   } finally {
-    await connection.end();
+    await connection.close();
   }
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
     const connection = await getConnection();
     try {
-        const [rows] = await connection.execute<mysql.RowDataPacket[]>('SELECT id, name, email, password, role FROM users WHERE email = ?', [email]);
-        if (rows.length === 0) {
+        const result = await connection.request()
+            .input('email', mssql.VarChar, email)
+            .query('SELECT Id as id, Name as name, Email as email, Password as password, Role as role FROM Users WHERE Email = @email');
+        if (result.recordset.length === 0) {
             return null;
         }
-        return rows[0] as User;
+        return result.recordset[0] as User;
     } finally {
-        await connection.end();
+        await connection.close();
     }
 }
 
 export async function createUser(user: Omit<User, 'id'>): Promise<User> {
     const connection = await getConnection();
     try {
-        const [result] = await connection.execute<mysql.ResultSetHeader>(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [user.name, user.email, user.password, user.role]
-        );
-        const newUser: User = { id: String(result.insertId), ...user };
+        const result = await connection.request()
+            .input('name', mssql.VarChar, user.name)
+            .input('email', mssql.VarChar, user.email)
+            .input('password', mssql.VarChar, user.password)
+            .input('role', mssql.VarChar, user.role)
+            .query('INSERT INTO Users (Name, Email, Password, Role) OUTPUT INSERTED.Id as id VALUES (@name, @email, @password, @role)');
+        
+        const newUser: User = { id: result.recordset[0].id, ...user };
         return newUser;
     } finally {
-        await connection.end();
+        await connection.close();
     }
 }
