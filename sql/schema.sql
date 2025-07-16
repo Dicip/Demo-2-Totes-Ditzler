@@ -3,41 +3,39 @@
 -- --- Creación de Tablas ---
 
 -- Tabla para almacenar la información de los usuarios del sistema.
-CREATE TABLE Users (
-    Id VARCHAR(255) PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    Password VARCHAR(255) NOT NULL, -- En una aplicación real, esta contraseña debería estar hasheada.
-    Role VARCHAR(10) NOT NULL DEFAULT 'User',
-    CONSTRAINT CK_Users_Role CHECK (Role IN ('Admin', 'User'))
+CREATE TABLE users (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL, -- En una aplicación real, esta contraseña debería estar hasheada.
+    role ENUM('Admin', 'User') NOT NULL DEFAULT 'User'
 );
 
 -- Tabla para almacenar la información de los clientes.
-CREATE TABLE Clients (
-    Id VARCHAR(255) PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Contact VARCHAR(255)
+CREATE TABLE clients (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    contact VARCHAR(255)
 );
 
 -- Tabla para almacenar la información de los totes.
-CREATE TABLE Totes (
-    Id VARCHAR(255) PRIMARY KEY,
-    Status VARCHAR(20) NOT NULL,
-    ClientId VARCHAR(255),
-    LastDispatch DATETIME,
-    FOREIGN KEY (ClientId) REFERENCES Clients(Id),
-    CONSTRAINT CK_Totes_Status CHECK (Status IN ('Con Cliente', 'Disponible', 'En Lavado', 'En Mantenimiento', 'En Uso', 'Baja'))
+CREATE TABLE totes (
+    id VARCHAR(255) PRIMARY KEY,
+    status ENUM('Con Cliente', 'Disponible', 'En Lavado', 'En Mantenimiento', 'En Uso', 'Baja') NOT NULL,
+    clientId VARCHAR(255),
+    lastDispatch DATETIME,
+    FOREIGN KEY (clientId) REFERENCES clients(id)
 );
 
 
 -- --- Inserción de Datos de Ejemplo ---
 
 -- Insertar un usuario administrador de prueba.
-INSERT INTO Users (Id, Name, Email, Password, Role) VALUES
+INSERT INTO users (id, name, email, password, role) VALUES
 ('1', 'Admin Ditzler', 'test@example.com', 'password123', 'Admin');
 
 -- Insertar clientes de ejemplo.
-INSERT INTO Clients (Id, Name, Contact) VALUES
+INSERT INTO clients (id, name, contact) VALUES
 ('1', 'Del Valle', 'contacto@delvalle.com'),
 ('2', 'Sol Radiante', 'contacto@solradiante.com'),
 ('3', 'Los Andes', 'contacto@losandes.com'),
@@ -45,7 +43,7 @@ INSERT INTO Clients (Id, Name, Contact) VALUES
 ('5', 'Del Maipo', 'contacto@delmaipo.com');
 
 -- Insertar totes de ejemplo.
-INSERT INTO Totes (Id, Status, ClientId, LastDispatch) VALUES
+INSERT INTO totes (id, status, clientId, lastDispatch) VALUES
 ('TOTE-001', 'Con Cliente', '1', '2024-05-10 12:00:00'),
 ('TOTE-002', 'Con Cliente', '1', '2024-05-10 12:00:00'),
 ('TOTE-003', 'Con Cliente', '2', '2024-04-15 12:00:00'),
