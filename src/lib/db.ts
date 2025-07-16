@@ -1,6 +1,6 @@
 'use server';
 
-import mysql from 'mysql2/promise';
+import sql from 'mssql';
 
 export interface User {
   id: string;
@@ -31,56 +31,79 @@ export interface Database {
   totes: Tote[];
 }
 
+const config: sql.config = {
+  server: process.env.DB_SERVER || 'localhost',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  options: {
+    encrypt: process.env.DB_ENCRYPT === 'true', 
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+  },
+};
+
+
 async function getConnection() {
-    if (!process.env.DATABASE_URL) {
-        throw new Error("DATABASE_URL no está definida en las variables de entorno");
+    try {
+        const pool = await sql.connect(config);
+        return pool;
+    } catch (err) {
+        console.error('Error de conexión con la base de datos:', err);
+        throw new Error('No se pudo conectar a la base de datos SQL Server.');
     }
-  return await mysql.createConnection(process.env.DATABASE_URL);
 }
 
 export async function readDb(): Promise<Database> {
-  const connection = await getConnection();
+  const pool = await getConnection();
   try {
-    const [users] = await connection.execute('SELECT id, name, email, role FROM users');
-    const [clients] = await connection.execute('SELECT id, name, contact FROM clients');
-    const [totes] = await connection.execute('SELECT id, status, client_id as clientId, last_dispatch as lastDispatch FROM totes');
-
+    const usersResult = await pool.request().query('SELECT id, name, email, role FROM users');
+    const clientsResult = await pool.request().query('SELECT id, name, contact FROM clients');
+    const totesResult = await pool.request().query('SELECT id, status, client_id as clientId, last_dispatch as lastDispatch FROM totes');
+    
     return {
-      users: users as User[],
-      clients: clients as Client[],
-      totes: (totes as any[]).map(tote => ({
+      users: usersResult.recordset as User[],
+      clients: clientsResult.recordset as Client[],
+      totes: (totesResult.recordset as any[]).map(tote => ({
           ...tote,
           lastDispatch: tote.lastDispatch ? new Date(tote.lastDispatch).toISOString() : null
       })) as Tote[],
     };
   } finally {
-    await connection.end();
+    await pool.close();
   }
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
-    const connection = await getConnection();
+    const pool = await getConnection();
     try {
-        const [rows] = await connection.execute<mysql.RowDataPacket[]>('SELECT id, name, email, password, role FROM users WHERE email = ?', [email]);
-        if (rows.length === 0) {
+        const result = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query('SELECT id, name, email, password, role FROM users WHERE email = @email');
+
+        if (result.recordset.length === 0) {
             return null;
         }
-        return rows[0] as User;
+        return result.recordset[0] as User;
     } finally {
-        await connection.end();
+        await pool.close();
     }
 }
 
 export async function createUser(user: Omit<User, 'id'>): Promise<User> {
-    const connection = await getConnection();
+    const pool = await getConnection();
     try {
-        const [result] = await connection.execute<mysql.ResultSetHeader>(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [user.name, user.email, user.password, user.role]
-        );
-        const newUser: User = { id: String(result.insertId), ...user };
+        const result = await pool.request()
+            .input('name', sql.NVarChar, user.name)
+            .input('email', sql.NVarChar, user.email)
+            .input('password', sql.NVarChar, user.password)
+            // SQL Server no soporta el tipo ENUM directamente, se asume NVarChar
+            .input('role', sql.NVarChar, user.role)
+            .query('INSERT INTO users (name, email, password, role) OUTPUT INSERTED.id VALUES (@name, @email, @password, @role)');
+        
+        const newUserId = result.recordset[0].id;
+        const newUser: User = { id: String(newUserId), ...user };
         return newUser;
     } finally {
-        await connection.end();
+        await pool.close();
     }
 }
