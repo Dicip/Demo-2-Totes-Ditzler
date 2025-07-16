@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 9002",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -38,7 +38,12 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
     "lucide-react": "^0.475.0",
+<<<<<<< HEAD
     "mssql": "^10.0.2",
+=======
+    "mssql": "^11.0.1",
+    "mysql2": "^3.10.1",
+>>>>>>> 788ae29bae1c7188df275a3308132b8150b7360c
     "next": "15.3.3",
     "patch-package": "^8.0.0",
     "react": "^18.3.1",
@@ -51,7 +56,11 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@types/mssql": "^9.1.5",
+=======
+    "@types/mssql": "^9.1.7",
+>>>>>>> 788ae29bae1c7188df275a3308132b8150b7360c
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
