@@ -17,15 +17,17 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { readDb } from '@/lib/db';
 
-const totes = [
-    { id: 'TOTE-001', status: 'En Almacén', client: 'Cliente A' },
-    { id: 'TOTE-002', status: 'En Tránsito', client: 'Cliente B' },
-    { id: 'TOTE-003', status: 'Entregado', client: 'Cliente C' },
-    { id: 'TOTE-004', status: 'En Almacén', client: 'Cliente A' },
-];
+export default async function TotesPage() {
+  const { totes, clients } = await readDb();
 
-export default function TotesPage() {
+  const getClientName = (clientId: string | null) => {
+    if (!clientId) return 'N/A';
+    const client = clients.find(c => c.id === clientId);
+    return client ? client.name : 'Desconocido';
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -58,7 +60,7 @@ export default function TotesPage() {
                 <TableCell>
                    <Badge variant="outline">{tote.status}</Badge>
                 </TableCell>
-                <TableCell>{tote.client}</TableCell>
+                <TableCell>{getClientName(tote.clientId)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -10,36 +10,113 @@ import {
 } from '@/components/ui/card';
 import {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
 } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { readDb, Tote, Client } from '@/lib/db';
+import React from 'react';
 
-const toteStatusData = [
-  { name: 'Con Cliente', value: 400, color: '#3B82F6' }, // Blue
-  { name: 'Disponible', value: 300, color: '#14A38B' }, // Teal
-  { name: 'En Lavado', value: 150, color: '#6B7280' },  // Gray
-  { name: 'En Mantenimiento', value: 100, color: '#F97316' }, // Orange
-  { name: 'En Uso', value: 50, color: '#84CC16' }, // Lime
-];
+interface DashboardData {
+  toteStatusData: { name: string; value: number; color: string }[];
+  totesWithClients: { name: string; totes: number }[];
+  overdueTotes: { name: string; totes: number }[];
+  totalTotes: number;
+  totalUsers: number;
+  totesWithClientsCount: number;
+  overdueTotesCount: number;
+}
 
-const totesWithClients = [
-    { name: 'Del Valle', totes: 2 },
-    { name: 'Sol Radiante', totes: 2 },
-    { name: 'Los Andes', totes: 2 },
-    { name: 'del Pacifico', totes: 2 },
-    { name: 'Del Maipo', totes: 1 },
-];
+const statusColors: { [key: string]: string } = {
+  'Con Cliente': '#3B82F6', // Blue
+  'Disponible': '#14A38B', // Teal
+  'En Lavado': '#6B7280',  // Gray
+  'En Mantenimiento': '#F97316', // Orange
+  'En Uso': '#84CC16', // Lime
+};
 
-const overdueTotes = [
-    { name: 'Sol Radiante', totes: 2 },
-    { name: 'Del Maipo', totes: 1 },
-    { name: 'Del Valle', totes: 1 },
-    { name: 'Los Andes', totes: 1 },
-];
+async function getDashboardData(): Promise<DashboardData> {
+    const { totes, clients, users } = await readDb();
+
+    // Tote Status Data
+    const toteStatusCounts = totes.reduce((acc, tote) => {
+        acc[tote.status] = (acc[tote.status] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const toteStatusData = Object.entries(toteStatusCounts).map(([name, value]) => ({
+        name,
+        value,
+        color: statusColors[name] || '#000000',
+    }));
+
+    // Totes with Clients
+    const totesWithClientsMap = new Map<string, number>();
+    totes.forEach(tote => {
+        if (tote.clientId) {
+            const client = clients.find(c => c.id === tote.clientId);
+            if (client) {
+                totesWithClientsMap.set(client.name, (totesWithClientsMap.get(client.name) || 0) + 1);
+            }
+        }
+    });
+    const totesWithClients = Array.from(totesWithClientsMap.entries()).map(([name, totes]) => ({ name, totes }));
+    const totesWithClientsCount = totes.filter(t => t.clientId !== null).length;
+
+    // Overdue Totes (older than 30 days)
+    const overdueTotesMap = new Map<string, number>();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    totes.forEach(tote => {
+        if (tote.clientId && tote.lastDispatch) {
+            const dispatchDate = new Date(tote.lastDispatch);
+            if (dispatchDate < thirtyDaysAgo) {
+                const client = clients.find(c => c.id === tote.clientId);
+                if (client) {
+                    overdueTotesMap.set(client.name, (overdueTotesMap.get(client.name) || 0) + 1);
+                }
+            }
+        }
+    });
+    const overdueTotes = Array.from(overdueTotesMap.entries()).map(([name, totes]) => ({ name, totes }));
+    const overdueTotesCount = overdueTotes.reduce((sum, client) => sum + client.totes, 0);
+
+    // Totals
+    const totalTotes = totes.filter(t => t.status !== 'Baja').length;
+    const totalUsers = users.length;
+
+    return {
+        toteStatusData,
+        totesWithClients,
+        overdueTotes,
+        totalTotes,
+        totalUsers,
+        totesWithClientsCount,
+        overdueTotesCount,
+    };
+}
 
 
 export default function DashboardPage() {
+    const [data, setData] = React.useState<DashboardData | null>(null);
+
+    React.useEffect(() => {
+        getDashboardData().then(setData);
+    }, []);
+
+    if (!data) {
+        return <div>Cargando...</div>;
+    }
+
+    const {
+        toteStatusData,
+        totesWithClients,
+        overdueTotes,
+        totalTotes,
+        totalUsers,
+        totesWithClientsCount,
+        overdueTotesCount
+    } = data;
+
   return (
     <div className="flex-1 space-y-6">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -77,12 +154,12 @@ export default function DashboardPage() {
              <div className="flex items-center gap-4">
                 <Package className="h-8 w-8 text-primary" />
                 <div>
-                    <p className="text-3xl font-bold">9</p>
+                    <p className="text-3xl font-bold">{totesWithClientsCount}</p>
                     <p className="text-xs text-muted-foreground">Unidades actualmente con clientes</p>
                 </div>
             </div>
             <div className="space-y-2">
-                {totesWithClients.map((client) => (
+                {totesWithClients.slice(0, 5).map((client) => (
                     <div key={client.name} className="flex justify-between">
                         <span className="text-muted-foreground">{client.name}</span>
                         <span>{client.totes} totes</span>
@@ -99,12 +176,12 @@ export default function DashboardPage() {
              <div className="flex items-center gap-4">
                 <AlertTriangle className="h-8 w-8 text-destructive" />
                 <div>
-                    <p className="text-3xl font-bold">5</p>
+                    <p className="text-3xl font-bold">{overdueTotesCount}</p>
                     <p className="text-xs text-muted-foreground">Unidades vencidas o con despacho &gt; 30 días</p>
                 </div>
             </div>
             <div className="space-y-2">
-                {overdueTotes.map((client) => (
+                {overdueTotes.slice(0, 5).map((client) => (
                     <div key={client.name} className="flex justify-between">
                         <span className="text-muted-foreground">{client.name}</span>
                         <span className="font-medium text-destructive">{client.totes} tote{client.totes > 1 ? 's' : ''}</span>
@@ -123,7 +200,7 @@ export default function DashboardPage() {
              <div className="flex items-center gap-4">
                 <Package className="h-10 w-10 text-muted-foreground" />
                 <div>
-                    <p className="text-4xl font-bold">22</p>
+                    <p className="text-4xl font-bold">{totalTotes}</p>
                     <p className="text-sm text-muted-foreground">Unidades totales (sin contar bajas)</p>
                 </div>
             </div>
@@ -137,7 +214,7 @@ export default function DashboardPage() {
              <div className="flex items-center gap-4">
                 <Users className="h-10 w-10 text-muted-foreground" />
                 <div>
-                    <p className="text-4xl font-bold">5</p>
+                    <p className="text-4xl font-bold">{totalUsers}</p>
                     <p className="text-sm text-muted-foreground">Usuarios con acceso al sistema</p>
                 </div>
             </div>

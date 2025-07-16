@@ -16,14 +16,16 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
+import { readDb } from '@/lib/db';
 
-const clients = [
-    { name: 'Tech Solutions Inc.', contact: 'contact@techsolutions.com', totes: 150 },
-    { name: 'Global Logistics', contact: 'support@globallogistics.com', totes: 320 },
-    { name: 'Innovate Corp', contact: 'hello@innovate.com', totes: 85 },
-];
+export default async function ClientsPage() {
+  const { clients, totes } = await readDb();
 
-export default function ClientsPage() {
+  const clientsWithTotesCount = clients.map(client => {
+    const totesCount = totes.filter(tote => tote.clientId === client.id).length;
+    return { ...client, totes: totesCount };
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -50,8 +52,8 @@ export default function ClientsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {clients.map((client) => (
-              <TableRow key={client.contact}>
+            {clientsWithTotesCount.map((client) => (
+              <TableRow key={client.id}>
                 <TableCell className="font-medium">{client.name}</TableCell>
                 <TableCell>{client.contact}</TableCell>
                 <TableCell>{client.totes}</TableCell>

@@ -17,15 +17,11 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { readDb } from '@/lib/db';
 
-const users = [
-    { name: 'Olivia Martin', email: 'olivia.martin@email.com', role: 'Admin' },
-    { name: 'John Doe', email: 'john.doe@example.com', role: 'User' },
-    { name: 'Jane Smith', email: 'jane.smith@example.com', role: 'User' },
-    { name: 'Noah Williams', email: 'noah.w@email.com', role: 'User' },
-];
+export default async function UsersPage() {
+  const { users } = await readDb();
 
-export default function UsersPage() {
   return (
     <Card>
       <CardHeader>

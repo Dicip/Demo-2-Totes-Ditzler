@@ -9,19 +9,7 @@ import {
   RegisterSchema,
   ForgotPasswordSchema,
 } from '@/lib/schemas';
-
-// Mock user database
-const users = [
-  {
-    id: '1',
-    name: 'Test User',
-    email: 'test@example.com',
-    password: 'password123',
-    role: 'USER',
-  },
-];
-
-let failedLoginAttempts: Record<string, number> = {};
+import { readDb, writeDb } from '@/lib/db';
 
 export async function login(values: z.infer<typeof LoginSchema>) {
   const validatedFields = LoginSchema.safeParse(values);
@@ -32,15 +20,12 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 
   const { email, password } = validatedFields.data;
 
-  const existingUser = users.find((user) => user.email === email);
+  const db = await readDb();
+  const existingUser = db.users.find((user) => user.email === email);
 
   if (!existingUser || existingUser.password !== password) {
-    failedLoginAttempts[email] = (failedLoginAttempts[email] || 0) + 1;
     return { error: 'Email o contraseña inválidos.' };
   }
-  
-  // Reset failed attempts on successful login
-  delete failedLoginAttempts[email];
 
   cookies().set('auth_token', existingUser.id, {
     // httpOnly: true, // This must be false for the client-side check to work
@@ -61,14 +46,23 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
   
   const { name, email, password } = validatedFields.data;
   
-  const existingUser = users.find((user) => user.email === email);
+  const db = await readDb();
+  const existingUser = db.users.find((user) => user.email === email);
 
   if (existingUser) {
     return { error: 'Ya existe una cuenta con este email.' };
   }
   
   // This is a mock. In a real app, you would hash the password.
-  users.push({ id: String(users.length + 1), name, email, password, role: 'USER' });
+  const newUser = { 
+    id: String(db.users.length + 1), 
+    name, 
+    email, 
+    password, 
+    role: 'User' as const 
+  };
+  db.users.push(newUser);
+  await writeDb(db);
 
   return { success: '¡Registro exitoso! Ahora puedes iniciar sesión.' };
 }
@@ -83,7 +77,8 @@ export async function forgotPassword(
   }
 
   const { email } = validatedFields.data;
-  const existingUser = users.find((user) => user.email === email);
+  const db = await readDb();
+  const existingUser = db.users.find((user) => user.email === email);
 
   if (!existingUser) {
     return { error: 'No se encontró una cuenta con este email.' };
